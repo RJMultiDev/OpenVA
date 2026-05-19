@@ -1,5 +1,6 @@
 package top.niunaijun.blackbox.fake.hook;
 
+import android.os.Build;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import top.niunaijun.blackbox.fake.service.ISettingsSystemProxy;
 import top.niunaijun.blackbox.fake.service.IConnectivityManagerProxy;
 import top.niunaijun.blackbox.fake.service.ISystemSensorManagerProxy;
 import top.niunaijun.blackbox.fake.service.IContentProviderProxy;
+import top.niunaijun.blackbox.fake.service.ICredentialManagerProxy;
 import top.niunaijun.blackbox.fake.service.IXiaomiAttributionSourceProxy;
 import top.niunaijun.blackbox.fake.service.IXiaomiSettingsProxy;
 import top.niunaijun.blackbox.fake.service.IXiaomiMiuiServicesProxy;
@@ -187,6 +189,14 @@ public class HookManager {
             
             if (BuildCompat.isS()) {
                 addInjector(new ISensitiveContentProtectionManagerProxy());
+            }
+
+            
+            
+            
+            
+            if (Build.VERSION.SDK_INT >= 34) {
+                addInjector(new ICredentialManagerProxy());
             }
             
             if (BuildCompat.isR()) {
