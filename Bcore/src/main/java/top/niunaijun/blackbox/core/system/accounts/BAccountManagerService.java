@@ -1800,8 +1800,19 @@ public class BAccountManagerService extends IBAccountManagerService.Stub impleme
     private String getCallingPackageName() {
         int callingPid = Binder.getCallingPid();
         ProcessRecord processByPid = BProcessManagerService.get().findProcessByPid(callingPid);
-        if (processByPid == null)
-            throw new IllegalArgumentException("ProcessRecord is null, PID: " + callingPid);
-        return processByPid.getPackageName();
+        if (processByPid != null) {
+            return processByPid.getPackageName();
+        }
+        try {
+            int callingUid = Binder.getCallingUid();
+            String[] packages = BPackageManagerService.get().getPackagesForUid(callingUid, 0);
+            if (packages != null && packages.length > 0) {
+                return packages[0];
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "getCallingPackageName: PackageManager fallback failed for PID " + callingPid, e);
+        }
+        Log.w(TAG, "getCallingPackageName: unable to resolve calling package for PID " + callingPid);
+        return "";
     }
 }

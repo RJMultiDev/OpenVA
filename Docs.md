@@ -382,7 +382,7 @@ adb logcat | grep "BlackBox\|WebView\|GmsProxy\|WorkManager"
 adb logcat > blackbox_logs.txt
 
 # Analyze specific components
-adb logcat | grep "JobServiceStub\|WebViewProxy\|GoogleAccountManagerProxy"
+adb logcat | grep "JobServiceStub\|IAccountManagerProxy\|GmsProxy"
 ```
 
 ---
@@ -421,14 +421,6 @@ boolean needsSpoofing = UIDSpoofingHelper.needsUIDSpoofing(operation, packageNam
 
 ### Service Proxies
 
-#### WebViewProxy
-```java
-// WebView management
-WebViewProxy.configureWebView(webView, context);
-WebViewProxy.setDataDirectorySuffix(suffix);
-String dataDir = WebViewProxy.getDataDirectory();
-```
-
 #### WorkManagerProxy
 ```java
 // WorkManager compatibility
@@ -437,12 +429,12 @@ WorkManagerProxy.cancelWork(workId);
 List<WorkInfo> workInfos = WorkManagerProxy.getWorkInfos();
 ```
 
-#### GoogleAccountManagerProxy
+#### IAccountManagerProxy
 ```java
-// Google account management
-Account[] accounts = GoogleAccountManagerProxy.getAccounts();
-String token = GoogleAccountManagerProxy.getAuthToken(account, authTokenType);
-boolean success = GoogleAccountManagerProxy.addAccount(account, password, extras);
+// Routes AccountManager binder calls into the per-sandbox
+// BAccountManagerService. Accounts are stored in BUserAccounts
+// keyed by sandbox userId.
+Account[] sandboxAccounts = BAccountManager.get().getAccountsAsUser("com.google");
 ```
 
 ---
