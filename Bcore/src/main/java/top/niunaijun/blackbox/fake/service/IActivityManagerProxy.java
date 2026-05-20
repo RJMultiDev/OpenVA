@@ -137,7 +137,8 @@ public class IActivityManagerProxy extends ClassInvocationStub {
             Object content = null;
 
             if (auth instanceof String) {
-                if (ProxyManifest.isProxy((String) auth)) {
+                String authStr = (String) auth;
+                if (ProxyManifest.isProxy(authStr)) {
                     return method.invoke(who, args);
                 }
 
@@ -145,57 +146,74 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                     args[1] = BlackBoxCore.getHostPkg();
                 }
 
-                if (auth.equals("settings")
-                        || auth.equals("media")
-                        || auth.equals("telephony")
-                        || ((String) auth).contains("com.google.android.gms")
-                        || ((String) auth).contains("com.android.vending")
-                        || ((String) auth).contains("com.google.android.gsf")
-                        || auth.equals("com.google.android.gms.chimera")
-                        || auth.equals("com.huawei.android.launcher.settings")
-                        || auth.equals("com.hihonor.android.launcher.settings")) {
+                int userId = BActivityThread.getUserId();
+                boolean isGmsAuth = authStr.contains("com.google.android.gms")
+                        || authStr.contains("com.android.vending")
+                        || authStr.contains("com.google.android.gsf");
+                boolean isSystemAuth = authStr.equals("settings")
+                        || authStr.equals("media")
+                        || authStr.equals("telephony")
+                        || authStr.equals("com.huawei.android.launcher.settings")
+                        || authStr.equals("com.hihonor.android.launcher.settings");
+                boolean sandboxHasGms = isGmsAuth
+                        && BlackBoxCore.get().isInstallGms(userId);
+
+                if (isSystemAuth || (isGmsAuth && !sandboxHasGms)) {
                     content = method.invoke(who, args);
-                    ContentProviderDelegate.update(content, (String) auth);
+                    ContentProviderDelegate.update(content, authStr);
                     return content;
-                } else {
-                    
-
-                    ProviderInfo providerInfo = BlackBoxCore.getBPackageManager()
-                            .resolveContentProvider(
-                                    (String) auth, GET_META_DATA, BActivityThread.getUserId());
-                    if (providerInfo == null) {
-                        
-                        return null;
-                    }
-
-                    
-                    IBinder providerBinder = null;
-                    if (BActivityThread.getAppPid() != -1) {
-                        AppConfig appConfig = BlackBoxCore.getBActivityManager()
-                                .initProcess(
-                                        providerInfo.packageName,
-                                        providerInfo.processName,
-                                        BActivityThread.getUserId());
-                        if (appConfig.bpid != BActivityThread.getAppPid()) {
-                            providerBinder = BlackBoxCore.getBActivityManager()
-                                    .acquireContentProviderClient(providerInfo);
-                        }
-                        args[authIndex] = ProxyManifest.getProxyAuthorities(appConfig.bpid);
-                        args[getUserIndex()] = BlackBoxCore.getHostUserId();
-                    }
-                    if (providerBinder == null)
-                        return null;
-
-                    content = method.invoke(who, args);
-                    Reflector.with(content).field("info").set(providerInfo);
-                    Reflector.with(content)
-                            .field("provider")
-                            .set(
-                                    new ContentProviderStub()
-                                            .wrapper(
-                                                    BRContentProviderNative.get().asInterface(providerBinder),
-                                                    providerInfo.packageName));
                 }
+
+                ProviderInfo providerInfo = BlackBoxCore.getBPackageManager()
+                        .resolveContentProvider(authStr, GET_META_DATA, userId);
+                if (providerInfo == null) {
+                    if (isGmsAuth) {
+                        Slog.w(TAG, "Sandbox GMS does not declare provider " + authStr
+                                + " for user " + userId + ", falling back to host.");
+                        content = method.invoke(who, args);
+                        ContentProviderDelegate.update(content, authStr);
+                        return content;
+                    }
+                    return null;
+                }
+
+                IBinder providerBinder = null;
+                if (BActivityThread.getAppPid() != -1) {
+                    AppConfig appConfig = BlackBoxCore.getBActivityManager()
+                            .initProcess(
+                                    providerInfo.packageName,
+                                    providerInfo.processName,
+                                    userId);
+                    if (appConfig.bpid != BActivityThread.getAppPid()) {
+                        providerBinder = BlackBoxCore.getBActivityManager()
+                                .acquireContentProviderClient(providerInfo);
+                    }
+                    args[authIndex] = ProxyManifest.getProxyAuthorities(appConfig.bpid);
+                    args[getUserIndex()] = BlackBoxCore.getHostUserId();
+                }
+                if (providerBinder == null) {
+                    if (isGmsAuth) {
+                        Slog.w(TAG, "Sandbox GMS provider " + authStr
+                                + " could not be bound for user " + userId
+                                + ", falling back to host.");
+                        args[authIndex] = authStr;
+                        args[getUserIndex()] = userId;
+                        content = method.invoke(who, args);
+                        ContentProviderDelegate.update(content, authStr);
+                        return content;
+                    }
+                    return null;
+                }
+
+                content = method.invoke(who, args);
+                Reflector.with(content).field("info").set(providerInfo);
+                Reflector.with(content)
+                        .field("provider")
+                        .set(
+                                new ContentProviderStub()
+                                        .wrapper(
+                                                BRContentProviderNative.get().asInterface(providerBinder),
+                                                providerInfo.packageName));
 
                 return content;
             }
