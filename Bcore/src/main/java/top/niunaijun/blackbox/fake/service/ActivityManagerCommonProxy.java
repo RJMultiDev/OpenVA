@@ -36,8 +36,12 @@ public class ActivityManagerCommonProxy {
             Intent intent = getIntent(args);
             Slog.d(TAG, "Hook in : " + intent);
             assert intent != null;
-            
-            
+
+            if (maybeRouteSandboxAccountPicker(intent)) {
+                return method.invoke(who, args);
+            }
+
+
             if (intent.getParcelableExtra("_B_|_target_") != null) {
                 return method.invoke(who, args);
             }
@@ -126,6 +130,65 @@ public class ActivityManagerCommonProxy {
                 }
             }
             return null;
+        }
+
+        /**
+         * Detect Android's system ChooseTypeAndAccountActivity / ChooseAccountActivity and
+         * redirect to a sandbox-aware picker so callers see accounts from BAccountManagerService
+         * (their sandbox) rather than the host's AccountManager.
+         *
+         * Returns true when the intent was rewritten and should be forwarded to the host AM as-is.
+         */
+        private boolean maybeRouteSandboxAccountPicker(Intent intent) {
+            if (intent == null) {
+                return false;
+            }
+            ComponentName component = intent.getComponent();
+            if (component == null) {
+                return false;
+            }
+            if (!"android".equals(component.getPackageName())) {
+                return false;
+            }
+            String className = component.getClassName();
+            if (className == null) {
+                return false;
+            }
+            boolean isPicker = className.equals("android.accounts.ChooseTypeAndAccountActivity")
+                    || className.equals("android.accounts.ChooseAccountActivity")
+                    || className.endsWith(".ChooseTypeAndAccountActivity")
+                    || className.endsWith(".ChooseAccountActivity");
+            if (!isPicker) {
+                return false;
+            }
+            // Only intercept when called from inside a sandboxed app process. The host
+            // BlackBox UI may legitimately need to open the system picker.
+            if (BActivityThread.getAppConfig() == null) {
+                return false;
+            }
+            int userId = BActivityThread.getUserId();
+            if (userId < 0) {
+                return false;
+            }
+            try {
+                String callingPkg = BActivityThread.getAppPackageName();
+                if (callingPkg == null) {
+                    callingPkg = "";
+                }
+                intent.setComponent(new ComponentName(
+                        BlackBoxCore.getHostPkg(),
+                        "top.niunaijun.blackboxa.view.account.SandboxAccountPickerActivity"));
+                intent.setPackage(null);
+                intent.putExtra("blackbox.sandbox.userId", userId);
+                intent.putExtra("blackbox.sandbox.callingPkg", callingPkg);
+                Slog.d(TAG, "Substituting system AccountPicker with sandbox picker for user "
+                        + userId + " caller=" + callingPkg);
+                return true;
+            } catch (Throwable t) {
+                Slog.w(TAG, "maybeRouteSandboxAccountPicker failed, letting original intent through: "
+                        + t.getMessage());
+                return false;
+            }
         }
     }
 
