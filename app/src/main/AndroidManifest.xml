@@ -46,6 +46,11 @@
             android:name=".view.main.ShortcutActivity"
             android:excludeFromRecents="true"
             android:exported="true" />
+        <activity
+            android:name=".view.account.SandboxAccountPickerActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.Light.Dialog.Alert" />
         <activity android:name=".view.main.MainActivity"
             android:exported="true">
             <intent-filter>

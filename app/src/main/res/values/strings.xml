@@ -67,4 +67,8 @@
     <string name="disable_gms">Disable Service</string>
     <string name="disable_gms_hint">Clear the current Google service environment? Google service data will be cleared.</string>
     <string name="no_gms">Currently, there is no Google service environment on mobile phones.</string>
+
+    <string name="sandbox_picker_title">Choose an account</string>
+    <string name="sandbox_picker_description">Pick a sandbox account to use with %1$s.</string>
+    <string name="sandbox_picker_empty">No sandbox accounts yet. Add one from the app you opened.</string>
 </resources>
