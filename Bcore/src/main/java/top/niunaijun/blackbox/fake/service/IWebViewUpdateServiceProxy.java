@@ -1,31 +1,53 @@
 package top.niunaijun.blackbox.fake.service;
 
-import android.content.pm.PackageInfo;
-
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 
+import black.android.os.BRServiceManager;
+import black.android.webkit.BRIWebViewUpdateServiceStub;
+import top.niunaijun.blackbox.fake.hook.BinderInvocationStub;
 import top.niunaijun.blackbox.fake.hook.MethodHook;
 import top.niunaijun.blackbox.fake.hook.ProxyMethod;
-import top.niunaijun.blackbox.fake.hook.ClassInvocationStub;
 import top.niunaijun.blackbox.utils.Slog;
 
 
-public class IWebViewUpdateServiceProxy extends ClassInvocationStub {
+/**
+ * Proxy for {@code android.webkit.IWebViewUpdateService} (system service binder
+ * {@code "webviewupdate"}, present since API 22).
+ *
+ * <p>The previous implementation extended {@code ClassInvocationStub} with
+ * {@code getWho()} returning {@code null}, which causes
+ * {@link top.niunaijun.blackbox.fake.hook.ClassInvocationStub#injectHook()} to
+ * bail out before registering any of its {@code @ProxyMethod} classes, so none
+ * of the method hooks actually fired and the cloned app talked to the real
+ * binder directly. This rewrite uses {@code BinderInvocationStub("webviewupdate")},
+ * the same pattern as {@code ICredentialManagerProxy} / {@code ILocaleManagerProxy},
+ * so the binder is swapped into the sandbox {@code ServiceManager} cache and
+ * client {@code IWebViewUpdateService$Stub.asInterface()} calls return a proxy
+ * that routes through this class.
+ *
+ * <p>The proxy keeps the cloned app talking to the host WebView provider but
+ * adds defensive fallbacks so a transient lookup failure (which has been
+ * observed on Android 13+ when the host WebView package is being updated)
+ * does not surface as a crash in the cloned app.
+ */
+public class IWebViewUpdateServiceProxy extends BinderInvocationStub {
     public static final String TAG = "IWebViewUpdateServiceProxy";
+    private static final String SERVICE = "webviewupdate";
 
     public IWebViewUpdateServiceProxy() {
-        super();
+        super(BRServiceManager.get().getService(SERVICE));
     }
 
     @Override
     protected Object getWho() {
-        return null; 
+        return BRIWebViewUpdateServiceStub.get().asInterface(
+                BRServiceManager.get().getService(SERVICE));
     }
 
     @Override
     protected void inject(Object baseInvocation, Object proxyInvocation) {
-        
+        replaceSystemService(SERVICE);
     }
 
     @Override
@@ -33,212 +55,60 @@ public class IWebViewUpdateServiceProxy extends ClassInvocationStub {
         return false;
     }
 
-    
+    @ProxyMethod("waitForAndGetProvider")
+    public static class WaitForAndGetProvider extends MethodHook {
+        @Override
+        protected Object hook(Object who, Method method, Object[] args) throws Throwable {
+            return passThroughOrNull(who, method, args);
+        }
+    }
+
     @ProxyMethod("getCurrentWebViewPackage")
     public static class GetCurrentWebViewPackage extends MethodHook {
         @Override
         protected Object hook(Object who, Method method, Object[] args) throws Throwable {
-            Slog.d(TAG, "WebViewUpdateService: getCurrentWebViewPackage called");
-            
-            try {
-                
-                Object result = method.invoke(who, args);
-                if (result != null) {
-                    Slog.d(TAG, "WebViewUpdateService: Successfully got current WebView package");
-                    return result;
-                }
-            } catch (Exception e) {
-                Slog.w(TAG, "WebViewUpdateService: Failed to get current WebView package", e);
-            }
-            
-            
-            Slog.d(TAG, "WebViewUpdateService: Returning null to use system default");
-            return null;
+            return passThroughOrNull(who, method, args);
         }
     }
 
-    
+    @ProxyMethod("getCurrentWebViewPackageName")
+    public static class GetCurrentWebViewPackageName extends MethodHook {
+        @Override
+        protected Object hook(Object who, Method method, Object[] args) throws Throwable {
+            return passThroughOrNull(who, method, args);
+        }
+    }
+
     @ProxyMethod("getValidWebViewPackages")
     public static class GetValidWebViewPackages extends MethodHook {
         @Override
         protected Object hook(Object who, Method method, Object[] args) throws Throwable {
-            Slog.d(TAG, "WebViewUpdateService: getValidWebViewPackages called");
-            
-            try {
-                
-                Object result = method.invoke(who, args);
-                if (result != null && result instanceof PackageInfo[]) {
-                    PackageInfo[] packages = (PackageInfo[]) result;
-                    if (packages.length > 0) {
-                        Slog.d(TAG, "WebViewUpdateService: Found " + packages.length + " valid WebView packages");
-                        return result;
-                    }
-                }
-            } catch (Exception e) {
-                Slog.w(TAG, "WebViewUpdateService: Failed to get valid WebView packages", e);
-            }
-            
-            
-            Slog.d(TAG, "WebViewUpdateService: Returning empty array to prevent conflicts");
-            return new PackageInfo[0];
+            return passThroughOrNull(who, method, args);
         }
     }
 
-    
     @ProxyMethod("isMultiProcessEnabled")
     public static class IsMultiProcessEnabled extends MethodHook {
         @Override
         protected Object hook(Object who, Method method, Object[] args) throws Throwable {
-            Slog.d(TAG, "WebViewUpdateService: isMultiProcessEnabled called, returning false for single-process mode");
-            return false;
-        }
-    }
-
-    
-    @ProxyMethod("getWebViewPackages")
-    public static class GetWebViewPackages extends MethodHook {
-        @Override
-        protected Object hook(Object who, Method method, Object[] args) throws Throwable {
-            Slog.d(TAG, "WebViewUpdateService: getWebViewPackages called");
-            
-            try {
-                
-                Object result = method.invoke(who, args);
-                if (result != null) {
-                    Slog.d(TAG, "WebViewUpdateService: Successfully got WebView packages");
-                    return result;
-                }
-            } catch (Exception e) {
-                Slog.w(TAG, "WebViewUpdateService: Failed to get WebView packages", e);
-            }
-            
-            
-            return new ArrayList<>();
-        }
-    }
-
-    
-    @ProxyMethod("getWebViewProviderInfo")
-    public static class GetWebViewProviderInfo extends MethodHook {
-        @Override
-        protected Object hook(Object who, Method method, Object[] args) throws Throwable {
-            Slog.d(TAG, "WebViewUpdateService: getWebViewProviderInfo called");
-            
-            try {
-                
-                Object result = method.invoke(who, args);
-                if (result != null) {
-                    Slog.d(TAG, "WebViewUpdateService: Successfully got WebView provider info");
-                    return result;
-                }
-            } catch (Exception e) {
-                Slog.w(TAG, "WebViewUpdateService: Failed to get WebView provider info", e);
-            }
-            
-            
-            return null;
-        }
-    }
-
-    
-    @ProxyMethod("isWebViewPackage")
-    public static class IsWebViewPackage extends MethodHook {
-        @Override
-        protected Object hook(Object who, Method method, Object[] args) throws Throwable {
-            if (args != null && args.length > 0) {
-                String packageName = (String) args[0];
-                Slog.d(TAG, "WebViewUpdateService: isWebViewPackage called for: " + packageName);
-                
-                
-                if (isKnownWebViewPackage(packageName)) {
-                    Slog.d(TAG, "WebViewUpdateService: " + packageName + " is a known WebView package");
-                    return true;
-                }
-            }
-            
             try {
                 return method.invoke(who, args);
-            } catch (Exception e) {
-                Slog.w(TAG, "WebViewUpdateService: Failed to check WebView package", e);
+            } catch (InvocationTargetException e) {
+                Slog.w(TAG, "isMultiProcessEnabled failed, defaulting to false", e.getCause());
                 return false;
             }
         }
-        
-        private boolean isKnownWebViewPackage(String packageName) {
-            if (packageName == null) return false;
-            
-            
-            return packageName.equals("com.google.android.webview") ||
-                   packageName.equals("com.google.android.webview.dev") ||
-                   packageName.equals("com.google.android.webview.beta") ||
-                   packageName.equals("com.google.android.webview.canary") ||
-                   packageName.equals("com.android.webview") ||
-                   packageName.equals("com.huawei.webview") ||
-                   packageName.equals("com.samsung.android.webview") ||
-                   packageName.equals("com.oneplus.webview");
-        }
     }
 
     
-    @ProxyMethod("getWebViewProvider")
-    public static class GetWebViewProvider extends MethodHook {
-        @Override
-        protected Object hook(Object who, Method method, Object[] args) throws Throwable {
-            Slog.d(TAG, "WebViewUpdateService: getWebViewProvider called");
-            
-            try {
-                
-                Object result = method.invoke(who, args);
-                if (result != null) {
-                    Slog.d(TAG, "WebViewUpdateService: Successfully got WebView provider");
-                    return result;
-                }
-            } catch (Exception e) {
-                Slog.w(TAG, "WebViewUpdateService: Failed to get WebView provider", e);
-            }
-            
-            
+    private static Object passThroughOrNull(Object who, Method method, Object[] args)
+            throws Throwable {
+        try {
+            return method.invoke(who, args);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            Slog.w(TAG, method.getName() + ": passing through as null", cause);
             return null;
-        }
-    }
-
-    
-    @ProxyMethod("enableWebViewPackage")
-    public static class EnableWebViewPackage extends MethodHook {
-        @Override
-        protected Object hook(Object who, Method method, Object[] args) throws Throwable {
-            if (args != null && args.length > 0) {
-                String packageName = (String) args[0];
-                Slog.d(TAG, "WebViewUpdateService: enableWebViewPackage called for: " + packageName);
-            }
-            
-            try {
-                return method.invoke(who, args);
-            } catch (Exception e) {
-                Slog.w(TAG, "WebViewUpdateService: Failed to enable WebView package", e);
-                
-                return true;
-            }
-        }
-    }
-
-    
-    @ProxyMethod("disableWebViewPackage")
-    public static class DisableWebViewPackage extends MethodHook {
-        @Override
-        protected Object hook(Object who, Method method, Object[] args) throws Throwable {
-            if (args != null && args.length > 0) {
-                String packageName = (String) args[0];
-                Slog.d(TAG, "WebViewUpdateService: disableWebViewPackage called for: " + packageName);
-            }
-            
-            try {
-                return method.invoke(who, args);
-            } catch (Exception e) {
-                Slog.w(TAG, "WebViewUpdateService: Failed to disable WebView package", e);
-                
-                return true;
-            }
         }
     }
 }

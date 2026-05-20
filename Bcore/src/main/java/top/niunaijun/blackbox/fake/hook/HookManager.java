@@ -1,5 +1,6 @@
 package top.niunaijun.blackbox.fake.hook;
 
+import android.os.Build;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -24,6 +25,7 @@ import top.niunaijun.blackbox.fake.service.ISettingsSystemProxy;
 import top.niunaijun.blackbox.fake.service.IConnectivityManagerProxy;
 import top.niunaijun.blackbox.fake.service.ISystemSensorManagerProxy;
 import top.niunaijun.blackbox.fake.service.IContentProviderProxy;
+import top.niunaijun.blackbox.fake.service.ICredentialManagerProxy;
 import top.niunaijun.blackbox.fake.service.IXiaomiAttributionSourceProxy;
 import top.niunaijun.blackbox.fake.service.IXiaomiSettingsProxy;
 import top.niunaijun.blackbox.fake.service.IXiaomiMiuiServicesProxy;
@@ -36,6 +38,7 @@ import top.niunaijun.blackbox.fake.service.IFingerprintManagerProxy;
 import top.niunaijun.blackbox.fake.service.IGraphicsStatsProxy;
 import top.niunaijun.blackbox.fake.service.IJobServiceProxy;
 import top.niunaijun.blackbox.fake.service.ILauncherAppsProxy;
+import top.niunaijun.blackbox.fake.service.ILocaleManagerProxy;
 import top.niunaijun.blackbox.fake.service.ILocationManagerProxy;
 import top.niunaijun.blackbox.fake.service.IMediaRouterServiceProxy;
 import top.niunaijun.blackbox.fake.service.IMediaSessionManagerProxy;
@@ -46,8 +49,6 @@ import top.niunaijun.blackbox.fake.service.IWebViewUpdateServiceProxy;
 import top.niunaijun.blackbox.fake.service.IMiuiSecurityManagerProxy;
 import top.niunaijun.blackbox.fake.service.SystemLibraryProxy;
 import top.niunaijun.blackbox.fake.service.ReLinkerProxy;
-import top.niunaijun.blackbox.fake.service.WebViewProxy;
-import top.niunaijun.blackbox.fake.service.WebViewFactoryProxy;
 import top.niunaijun.blackbox.fake.service.MediaRecorderProxy;
 import top.niunaijun.blackbox.fake.service.AudioRecordProxy;
 import top.niunaijun.blackbox.fake.service.MediaRecorderClassProxy;
@@ -128,8 +129,6 @@ public class HookManager {
             addInjector(new IWebViewUpdateServiceProxy());
             addInjector(new SystemLibraryProxy());
             addInjector(new ReLinkerProxy());
-            addInjector(new WebViewProxy());
-            addInjector(new WebViewFactoryProxy());
             addInjector(new WorkManagerProxy());
             addInjector(new MediaRecorderProxy());
             addInjector(new AudioRecordProxy());
@@ -187,6 +186,20 @@ public class HookManager {
             
             if (BuildCompat.isS()) {
                 addInjector(new ISensitiveContentProtectionManagerProxy());
+            }
+
+            
+            
+            
+            
+            if (Build.VERSION.SDK_INT >= 34) {
+                addInjector(new ICredentialManagerProxy());
+            }
+
+            
+            
+            if (Build.VERSION.SDK_INT >= 33) {
+                addInjector(new ILocaleManagerProxy());
             }
             
             if (BuildCompat.isR()) {
@@ -294,7 +307,7 @@ public class HookManager {
         String[] criticalHooks = {
             "IActivityManagerProxy",
             "IPackageManagerProxy", 
-            "WebViewProxy",
+            "IWebViewUpdateServiceProxy",
             "IContentProviderProxy"
         };
         

@@ -1,15 +1,8 @@
 package top.niunaijun.blackbox.utils;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.os.Build;
-import android.webkit.WebView;
-import android.webkit.WebViewDatabase;
-import android.webkit.WebSettings;
 
-import java.io.File;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -93,59 +86,13 @@ public class SocialMediaAppCrashPrevention {
     
     
     private static void installWebViewCrashPrevention() {
-        try {
-            
-            hookWebViewConstructor();
-            
-            
-            hookWebViewDatabase();
-            
-            Slog.d(TAG, "WebView crash prevention installed");
-        } catch (Exception e) {
-            Slog.w(TAG, "Failed to install WebView crash prevention: " + e.getMessage());
-        }
+        
+        
+        
+        
+        
     }
-    
-    
-    private static void hookWebViewConstructor() {
-        try {
-            
-            Constructor<WebView> originalConstructor = WebView.class.getDeclaredConstructor(Context.class);
-            originalConstructor.setAccessible(true);
-            
-            
-            Slog.d(TAG, "WebView constructor hook prepared");
-        } catch (Exception e) {
-            Slog.w(TAG, "Could not prepare WebView constructor hook: " + e.getMessage());
-        }
-    }
-    
-    
-    private static void hookWebViewDatabase() {
-        try {
-            
-            Context context = BlackBoxCore.getContext();
-            if (context != null) {
-                String packageName = context.getPackageName();
-                String userId = String.valueOf(BActivityThread.getUserId());
-                String webViewDir = context.getApplicationInfo().dataDir + "/webview_" + userId;
-                
-                File webViewDirectory = new File(webViewDir);
-                if (!webViewDirectory.exists()) {
-                    webViewDirectory.mkdirs();
-                    Slog.d(TAG, "Created WebView directory: " + webViewDir);
-                }
-                
-                
-                System.setProperty("webview.data.dir", webViewDir);
-                System.setProperty("webview.cache.dir", webViewDir + "/cache");
-                System.setProperty("webview.cookies.dir", webViewDir + "/cookies");
-            }
-        } catch (Exception e) {
-            Slog.w(TAG, "Could not hook WebViewDatabase: " + e.getMessage());
-        }
-    }
-    
+
     
     private static void installAttributionSourceCrashPrevention() {
         try {
