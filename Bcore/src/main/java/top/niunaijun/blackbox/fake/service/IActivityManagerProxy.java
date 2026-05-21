@@ -64,6 +64,24 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 
 @ScanClass(ActivityManagerCommonProxy.class)
 public class IActivityManagerProxy extends ClassInvocationStub {
+
+    private static boolean shouldBypassPendingProxy(Intent intent) {
+        if (intent == null) {
+            return true;
+        }
+        String data = intent.getDataString();
+        if (data != null && data.startsWith("market://")) {
+            return true;
+        }
+        ComponentName component = intent.getComponent();
+        if (component != null && "com.android.vending".equals(component.getPackageName())) {
+            return true;
+        }
+        String pkg = intent.getPackage();
+        return "com.android.vending".equals(pkg);
+    }
+
+
     public static final String TAG = "ActivityManagerStub";
 
     @Override
@@ -525,6 +543,9 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                 Intent intent = intents[i];
                 switch (type) {
                     case ActivityManagerCompat.INTENT_SENDER_ACTIVITY:
+                        if (shouldBypassPendingProxy(intent)) {
+                            break;
+                        }
                         Intent shadow = new Intent();
                         shadow.setComponent(new ComponentName(BlackBoxCore.getHostPkg(), ProxyManifest.getProxyPendingActivity(BActivityThread.getAppPid())));
                         ProxyPendingRecord.saveStub(shadow, intent, BActivityThread.getUserId());
