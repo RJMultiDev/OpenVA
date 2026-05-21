@@ -81,6 +81,19 @@ public class IActivityManagerProxy extends ClassInvocationStub {
         return "com.android.vending".equals(pkg);
     }
 
+#<<<<<<< codex/fix-array-null-pointer-exceptions-6gx866
+    private static boolean shouldForceVirtualProvider(String authority) {
+        if (authority == null) {
+            return false;
+        }
+        return authority.startsWith("com.android.vending")
+                || authority.startsWith("com.google.android.gms")
+                || authority.startsWith("com.google.android.gsf")
+                || authority.startsWith("com.google.android.webview")
+                || authority.startsWith("com.google.android.trichromelibrary");
+    }
+#=======
+#>>>>>>> main
 
     public static final String TAG = "ActivityManagerStub";
 
@@ -175,6 +188,8 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                         || authStr.equals("com.hihonor.android.launcher.settings");
                 boolean sandboxHasGms = isGmsAuth
                         && BlackBoxCore.get().isInstallGms(userId);
+                boolean forceVirtualProvider = shouldForceVirtualProvider(authStr)
+                        && sandboxHasGms;
 
                 if (isSystemAuth || (isGmsAuth && !sandboxHasGms)) {
                     content = method.invoke(who, args);
@@ -185,6 +200,11 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                 ProviderInfo providerInfo = BlackBoxCore.getBPackageManager()
                         .resolveContentProvider(authStr, GET_META_DATA, userId);
                 if (providerInfo == null) {
+                    if (forceVirtualProvider) {
+                        Slog.w(TAG, "Force-virtual provider not declared in sandbox: " + authStr
+                                + " user=" + userId + ", blocking host fallback.");
+                        return null;
+                    }
                     if (isGmsAuth) {
                         Slog.w(TAG, "Sandbox GMS does not declare provider " + authStr
                                 + " for user " + userId + ", falling back to host.");
@@ -210,6 +230,11 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                     args[getUserIndex()] = BlackBoxCore.getHostUserId();
                 }
                 if (providerBinder == null) {
+                    if (forceVirtualProvider) {
+                        Slog.w(TAG, "Force-virtual provider bind failed: " + authStr
+                                + " user=" + userId + ", blocking host fallback.");
+                        return null;
+                    }
                     if (isGmsAuth) {
                         Slog.w(TAG, "Sandbox GMS provider " + authStr
                                 + " could not be bound for user " + userId
