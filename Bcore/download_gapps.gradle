@@ -1,0 +1,51 @@
+task downloadGapps {
+    def destDir = file("src/main/assets/gapps")
+    outputs.dir destDir
+
+    doLast {
+        destDir.mkdirs()
+
+        def downloads = [
+            "https://github.com/microg/GmsCore/releases/download/v0.3.15.250932/com.google.android.gms-250932030.apk": "gms.apk",
+            "https://github.com/microg/GsfProxy/releases/download/v0.1.0/GsfProxy.apk": "gsf.apk",
+            "https://github.com/microg/GmsCore/releases/download/v0.3.15.250932/com.android.vending-84022630.apk": "vending.apk"
+        ]
+
+        downloads.each { url, fileName ->
+            def targetFile = new File(destDir, fileName)
+            if (!targetFile.exists()) {
+                println "Downloading ${fileName} from ${url}..."
+                try {
+                    def connection = new URL(url).openConnection()
+                    connection.setRequestProperty("User-Agent", "Mozilla/5.0")
+                    connection.setInstanceFollowRedirects(true)
+
+                    def responseCode = connection.getResponseCode()
+                    if (responseCode == 301 || responseCode == 302 || responseCode == 303) {
+                        def newUrl = connection.getHeaderField("Location")
+                        println "Redirected to ${newUrl}"
+                        connection = new URL(newUrl).openConnection()
+                        connection.setRequestProperty("User-Agent", "Mozilla/5.0")
+                    }
+
+                    targetFile.withOutputStream { out ->
+                        connection.inputStream.withCloseable { inStream ->
+                            out << inStream
+                        }
+                    }
+                    println "Downloaded ${fileName} successfully."
+                } catch (Exception e) {
+                    println "Failed to download ${fileName}: ${e.message}"
+                }
+            } else {
+                println "${fileName} already exists, skipping download."
+            }
+        }
+    }
+}
+
+tasks.whenTaskAdded { task ->
+    if (task.name == 'preBuild') {
+        task.dependsOn downloadGapps
+    }
+}
