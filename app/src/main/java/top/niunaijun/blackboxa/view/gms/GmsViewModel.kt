@@ -19,15 +19,4 @@ class GmsViewModel(private val mRepo: GmsRepository) : BaseViewModel() {
         }
     }
 
-    fun installGms(userID: Int) {
-        launchOnUI {
-            mRepo.installGms(userID,mUpdateInstalledLiveData)
-        }
-    }
-
-    fun uninstallGms(userID: Int) {
-        launchOnUI {
-            mRepo.uninstallGms(userID,mUpdateInstalledLiveData)
-        }
-    }
 }

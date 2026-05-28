@@ -47,52 +47,6 @@ public class GmsCore {
         return GOOGLE_APP.contains(str) || GOOGLE_SERVICE.contains(str);
     }
 
-    private static InstallResult installPackages(Set<String> list, int userId) {
-        BlackBoxCore blackBoxCore = BlackBoxCore.get();
-        for (String packageName : list) {
-            if (blackBoxCore.isInstalled(packageName, userId)) {
-                continue;
-            }
-            try {
-                BlackBoxCore.getContext().getPackageManager().getApplicationInfo(packageName, 0);
-            } catch (PackageManager.NameNotFoundException e) {
-                
-                continue;
-            }
-            InstallResult installResult = blackBoxCore.installPackageAsUser(packageName, userId);
-            if (!installResult.success) {
-                return installResult;
-            }
-        }
-        return new InstallResult();
-    }
-
-    private static void uninstallPackages(Set<String> list, int userId) {
-        BlackBoxCore blackBoxCore = BlackBoxCore.get();
-        for (String packageName : list) {
-            blackBoxCore.uninstallPackageAsUser(packageName, userId);
-        }
-    }
-
-    public static InstallResult installGApps(int userId) {
-        Set<String> googleApps = new HashSet<>();
-
-        googleApps.addAll(GOOGLE_SERVICE);
-        googleApps.addAll(GOOGLE_APP);
-
-        InstallResult installResult = installPackages(googleApps, userId);
-        if (!installResult.success) {
-            uninstallGApps(userId);
-            return installResult;
-        }
-        return installResult;
-    }
-
-    public static void uninstallGApps(int userId) {
-        uninstallPackages(GOOGLE_SERVICE, userId);
-        uninstallPackages(GOOGLE_APP, userId);
-    }
-
     public static void remove(String packageName) {
         GOOGLE_SERVICE.remove(packageName);
         GOOGLE_APP.remove(packageName);

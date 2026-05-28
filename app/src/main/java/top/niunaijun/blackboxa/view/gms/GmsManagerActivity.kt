@@ -78,44 +78,8 @@ class GmsManagerActivity : LoadingActivity() {
 
     private fun initRecyclerView() {
         mAdapter = RVAdapter<GmsBean>(this, GmsAdapter()).bind(viewBinding.recyclerView)
-            .setItemClickListener { view, item, _ ->
-                val checkbox = view.findViewById<Switch>(R.id.checkbox)
-                if (item.isInstalledGms) {
-                    uninstallGms(item.userID, checkbox)
-                } else {
-                    installGms(item.userID, checkbox)
-                }
-            }
         viewBinding.recyclerView.layoutManager = LinearLayoutManager(this)
 
-    }
-
-    private fun installGms(userID: Int, checkbox: Switch){
-        MaterialDialog(this).show {
-            title(R.string.enable_gms)
-            message(R.string.enable_gms_hint)
-            positiveButton(R.string.done){
-                showLoading()
-                viewModel.installGms(userID)
-            }
-            negativeButton(R.string.cancel){
-                checkbox.isChecked = !checkbox.isChecked
-            }
-        }
-    }
-
-    private fun uninstallGms(userID: Int, checkbox: Switch){
-        MaterialDialog(this).show {
-            title(R.string.disable_gms)
-            message(R.string.disable_gms_hint)
-            positiveButton(R.string.done){
-                showLoading()
-                viewModel.uninstallGms(userID)
-            }
-            negativeButton(R.string.cancel){
-                checkbox.isChecked = !checkbox.isChecked
-            }
-        }
     }
 
 
