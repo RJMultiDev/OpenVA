@@ -133,7 +133,12 @@ public class BPackage implements Parcelable {
         this.mVersionCode = aPackage.mVersionCode;
         this.applicationInfo = aPackage.applicationInfo;
         this.mVersionName = aPackage.mVersionName;
-        this.baseCodePath = aPackage.baseCodePath;
+        try {
+            this.baseCodePath = aPackage.baseCodePath;
+        } catch (Throwable e) {
+            top.niunaijun.blackbox.utils.Slog.w("BPackage", "baseCodePath is hidden/unsupported: " + e.getMessage());
+            this.baseCodePath = null;
+        }
         this.mSharedUserLabel = aPackage.mSharedUserLabel;
         this.configPreferences = aPackage.configPreferences;
         this.reqFeatures = aPackage.reqFeatures;
@@ -444,10 +449,20 @@ public class BPackage implements Parcelable {
         }
 
         public SigningDetails(PackageParser.SigningDetails signingDetails) {
-            if (signingDetails.pastSigningCertificates == null) {
-                this.signatures = signingDetails.signatures;
+            if (signingDetails != null) {
+                Signature[] pastCerts = null;
+                try {
+                    pastCerts = signingDetails.pastSigningCertificates;
+                } catch (Throwable t) {
+                    top.niunaijun.blackbox.utils.Slog.w("BPackage", "Cannot access pastSigningCertificates: " + t.getMessage());
+                }
+                if (pastCerts == null) {
+                    this.signatures = signingDetails.signatures;
+                } else {
+                    this.signatures = pastCerts;
+                }
             } else {
-                this.signatures = signingDetails.pastSigningCertificates;
+                this.signatures = new Signature[0];
             }
         }
 

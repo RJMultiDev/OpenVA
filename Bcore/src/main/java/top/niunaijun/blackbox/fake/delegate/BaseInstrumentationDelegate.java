@@ -375,6 +375,14 @@ public class BaseInstrumentationDelegate extends Instrumentation {
         for (AppLifecycleCallback appLifecycleCallback : BlackBoxCore.get().getAppLifecycleCallbacks()) {
             appLifecycleCallback.onActivityResumed(activity);
         }
+
+        // Anti-looping: If we are resuming SandboxAccountPickerActivity, ensure it doesn't trigger another proxy call.
+        if (activity != null && "top.niunaijun.blackboxa.view.account.SandboxAccountPickerActivity".equals(activity.getClass().getName())) {
+            top.niunaijun.blackbox.utils.Slog.d("BaseInstrumentationDelegate", "Resumed SandboxAccountPickerActivity, clearing target extra to prevent loops");
+            if (activity.getIntent() != null) {
+                activity.getIntent().removeExtra("_B_|_target_");
+            }
+        }
     }
 
     @Override

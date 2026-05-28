@@ -81,7 +81,7 @@ public class IActivityManagerProxy extends ClassInvocationStub {
         return "com.android.vending".equals(pkg);
     }
 
-#<<<<<<< codex/fix-array-null-pointer-exceptions-6gx866
+
     private static boolean shouldForceVirtualProvider(String authority) {
         if (authority == null) {
             return false;
@@ -92,8 +92,8 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                 || authority.startsWith("com.google.android.webview")
                 || authority.startsWith("com.google.android.trichromelibrary");
     }
-#=======
-#>>>>>>> main
+
+
 
     public static final String TAG = "ActivityManagerStub";
 
@@ -170,7 +170,7 @@ public class IActivityManagerProxy extends ClassInvocationStub {
             if (auth instanceof String) {
                 String authStr = (String) auth;
                 if (ProxyManifest.isProxy(authStr)) {
-                    return method.invoke(who, args);
+                    return safeInvoke(method, who, args, authStr);
                 }
 
                 if (BuildCompat.isQ()) {
@@ -192,7 +192,7 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                         && sandboxHasGms;
 
                 if (isSystemAuth || (isGmsAuth && !sandboxHasGms)) {
-                    content = method.invoke(who, args);
+                    content = safeInvoke(method, who, args, authStr);
                     ContentProviderDelegate.update(content, authStr);
                     return content;
                 }
@@ -208,7 +208,7 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                     if (isGmsAuth) {
                         Slog.w(TAG, "Sandbox GMS does not declare provider " + authStr
                                 + " for user " + userId + ", falling back to host.");
-                        content = method.invoke(who, args);
+                        content = safeInvoke(method, who, args, authStr);
                         ContentProviderDelegate.update(content, authStr);
                         return content;
                     }
@@ -241,26 +241,42 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                                 + ", falling back to host.");
                         args[authIndex] = authStr;
                         args[getUserIndex()] = userId;
-                        content = method.invoke(who, args);
+                        content = safeInvoke(method, who, args, authStr);
                         ContentProviderDelegate.update(content, authStr);
                         return content;
                     }
                     return null;
                 }
 
-                content = method.invoke(who, args);
-                Reflector.with(content).field("info").set(providerInfo);
-                Reflector.with(content)
-                        .field("provider")
-                        .set(
-                                new ContentProviderStub()
-                                        .wrapper(
-                                                BRContentProviderNative.get().asInterface(providerBinder),
-                                                providerInfo.packageName));
-
+                content = safeInvoke(method, who, args, authStr);
+                if (content != null) {
+                    Reflector.with(content).field("info").set(providerInfo);
+                    Reflector.with(content)
+                            .field("provider")
+                            .set(
+                                    new ContentProviderStub()
+                                            .wrapper(
+                                                    BRContentProviderNative.get().asInterface(providerBinder),
+                                                    providerInfo.packageName));
+                }
                 return content;
             }
             return method.invoke(who, args);
+        }
+
+        private Object safeInvoke(Method method, Object who, Object[] args, String authStr) throws Throwable {
+            try {
+                return method.invoke(who, args);
+            } catch (java.lang.reflect.InvocationTargetException e) {
+                if (e.getCause() instanceof SecurityException) {
+                    Slog.w(TAG, "SecurityException when fetching provider: " + authStr + " (" + e.getCause().getMessage() + "), returning null");
+                    return null;
+                }
+                throw e;
+            } catch (SecurityException e) {
+                Slog.w(TAG, "SecurityException when fetching provider: " + authStr + " (" + e.getMessage() + "), returning null");
+                return null;
+            }
         }
 
         protected int getAuthIndex() {
@@ -644,6 +660,12 @@ public class IActivityManagerProxy extends ClassInvocationStub {
             if (proxyIntent != null) {
                 proxyIntent.setExtrasClassLoader(BActivityThread.getApplication().getClassLoader());
                 ProxyBroadcastRecord.saveStub(proxyIntent, intent, BActivityThread.getUserId());
+                // Pre-collect nested intents to bypass IntentRedirect Hardening warning
+                if (proxyIntent.getExtras() != null) {
+                    if (BuildCompat.isR()) {
+                        proxyIntent.removeFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    }
+                }
                 args[intentIndex] = proxyIntent;
             }
             
@@ -651,9 +673,26 @@ public class IActivityManagerProxy extends ClassInvocationStub {
                 Object o = args[i];
                 if (o instanceof String[]) {
                     args[i] = null;
+                } else if (o instanceof Integer && (Integer) o == -1) {
+                    args[i] = BActivityThread.getUserId();
                 }
             }
-            return method.invoke(who, args);
+
+            try {
+                return method.invoke(who, args);
+            } catch (java.lang.reflect.InvocationTargetException e) {
+                if (e.getCause() instanceof SecurityException && e.getCause().getMessage() != null && e.getCause().getMessage().contains("INTERACT_ACROSS_USERS")) {
+                    Slog.w(TAG, "SecurityException in BroadcastIntent (INTERACT_ACROSS_USERS): " + e.getCause().getMessage());
+                    return 0; // ActivityManager.BROADCAST_SUCCESS
+                }
+                throw e;
+            } catch (SecurityException e) {
+                if (e.getMessage() != null && e.getMessage().contains("INTERACT_ACROSS_USERS")) {
+                    Slog.w(TAG, "SecurityException in BroadcastIntent (INTERACT_ACROSS_USERS): " + e.getMessage());
+                    return 0; // ActivityManager.BROADCAST_SUCCESS
+                }
+                throw e;
+            }
         }
 
         int getIntentIndex(Object[] args) {
@@ -844,7 +883,8 @@ public class IActivityManagerProxy extends ClassInvocationStub {
             MethodParameterUtils.replaceLastUid(args);
             String permission = (String) args[0];
             if (permission.equals(Manifest.permission.ACCOUNT_MANAGER)
-                    || permission.equals(Manifest.permission.SEND_SMS)) {
+                    || permission.equals(Manifest.permission.SEND_SMS)
+                    || permission.equals("com.google.android.gms.permission.INTERNAL_BROADCAST")) {
                 return PackageManager.PERMISSION_GRANTED;
             }
             

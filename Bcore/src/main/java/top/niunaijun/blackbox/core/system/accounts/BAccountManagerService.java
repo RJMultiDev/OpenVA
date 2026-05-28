@@ -396,7 +396,12 @@ public class BAccountManagerService extends IBAccountManagerService.Stub impleme
 
             @Override
             public void run() throws RemoteException {
-                mAuthenticator.getAccountCredentialsForCloning(this, account);
+                try {
+                    mAuthenticator.getAccountCredentialsForCloning(this, account);
+                } catch (Throwable e) {
+                    top.niunaijun.blackbox.utils.Slog.w(TAG, "getAccountCredentialsForCloning is hidden/unsupported: " + e.getMessage());
+                    onError(AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION, "Cloning not supported");
+                }
             }
 
             @Override
@@ -866,8 +871,12 @@ public class BAccountManagerService extends IBAccountManagerService.Stub impleme
                 
                 for (Account acc : getAccounts(parentUserId, mContext.getPackageName())) {
                     if (acc.equals(account)) {
-                        mAuthenticator.addAccountFromCredentials(
-                                this, account, accountCredentials);
+                        try {
+                            mAuthenticator.addAccountFromCredentials(this, account, accountCredentials);
+                        } catch (Throwable e) {
+                            top.niunaijun.blackbox.utils.Slog.w(TAG, "addAccountFromCredentials is hidden/unsupported: " + e.getMessage());
+                            onError(AccountManager.ERROR_CODE_UNSUPPORTED_OPERATION, "Adding account from credentials not supported");
+                        }
                         break;
                     }
                 }

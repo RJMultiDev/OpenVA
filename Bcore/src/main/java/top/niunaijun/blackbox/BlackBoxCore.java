@@ -1281,41 +1281,60 @@ public class BlackBoxCore extends ClientConfiguration {
         new Thread(() -> {
             File logFile = null;
             Context context = getContext();
-            String fileName = context.getPackageName() + "_logcat.txt";
+            String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss", java.util.Locale.US).format(new java.util.Date());
+            String fileName = context.getPackageName() + "_logcat_" + timestamp + ".txt";
             boolean useMediaStore = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q;
-            
             
             logDeviceInfo();
             
             try {
                 if (useMediaStore) {
-                    
                     android.content.ContentValues values = new android.content.ContentValues();
                     values.put(android.provider.MediaStore.Downloads.DISPLAY_NAME, fileName);
                     values.put(android.provider.MediaStore.Downloads.MIME_TYPE, "text/plain");
                     values.put(android.provider.MediaStore.Downloads.RELATIVE_PATH, android.os.Environment.DIRECTORY_DOWNLOADS + "/logs");
-                    android.net.Uri uri = context.getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
-                    if (uri != null) {
-                        try (java.io.OutputStream out = context.getContentResolver().openOutputStream(uri)) {
-                            
-                            ShellUtils.execCommand("logcat -c", false);
-                            java.lang.Process process = Runtime.getRuntime().exec("logcat");
-                            try (java.io.InputStream in = process.getInputStream()) {
-                                byte[] buffer = new byte[4096];
-                                int len;
-                                while ((len = in.read(buffer)) != -1) {
-                                    out.write(buffer, 0, len);
-                                }
+                    values.put(android.provider.MediaStore.Downloads.IS_PENDING, 1);
+
+                    android.net.Uri uri = null;
+                    try {
+                        uri = context.getContentResolver().insert(android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                    } catch (Exception e) {
+                        Slog.e(TAG, "MediaStore insert failed, trying fallback: " + e.getMessage());
+                    }
+
+                    if (uri == null) {
+                        // Fallback to app-specific external directory if MediaStore fails
+                        File documentsDir = new File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "logs");
+                        if (!documentsDir.exists()) {
+                            documentsDir.mkdirs();
+                        }
+                        logFile = new File(documentsDir, fileName);
+                        ShellUtils.execCommand("logcat -c", false);
+                        ShellUtils.execCommand("logcat -f " + logFile.getAbsolutePath(), false);
+                        return;
+                    }
+
+                    try (java.io.OutputStream out = context.getContentResolver().openOutputStream(uri)) {
+                        ShellUtils.execCommand("logcat -c", false);
+                        java.lang.Process process = Runtime.getRuntime().exec("logcat");
+                        try (java.io.InputStream in = process.getInputStream()) {
+                            byte[] buffer = new byte[4096];
+                            int len;
+                            while ((len = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, len);
                             }
                         }
+                    } finally {
+                        values.clear();
+                        values.put(android.provider.MediaStore.Downloads.IS_PENDING, 0);
+                        context.getContentResolver().update(uri, values, null, null);
                     }
                 } else {
-                    
-                    File docuentsdir = new File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "logs");
-                    if (!docuentsdir.exists()) {
-                        docuentsdir.mkdirs();
+                    File documentsDir = new File(context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), "logs");
+                    if (!documentsDir.exists()) {
+                        documentsDir.mkdirs();
                     }
-                    logFile = new File(docuentsdir, fileName);
+                    logFile = new File(documentsDir, fileName);
                     FileUtils.deleteDir(logFile);
                     ShellUtils.execCommand("logcat -c", false);
                     ShellUtils.execCommand("logcat -f " + logFile.getAbsolutePath(), false);

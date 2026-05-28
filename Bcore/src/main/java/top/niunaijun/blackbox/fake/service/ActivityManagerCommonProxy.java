@@ -158,6 +158,13 @@ public class ActivityManagerCommonProxy {
                     || className.equals("android.accounts.ChooseAccountActivity")
                     || className.endsWith(".ChooseTypeAndAccountActivity")
                     || className.endsWith(".ChooseAccountActivity");
+
+            // Prevent looping: if we already replaced it or it's calling GMS account picker
+            if ("com.google.android.gms.common.account.AccountPickerActivity".equals(className) ||
+                "com.google.android.gms".equals(intent.getPackage()) ||
+                "top.niunaijun.blackbox".equals(intent.getPackage())) {
+                return false;
+            }
             if (!isPicker) {
                 return false;
             }
