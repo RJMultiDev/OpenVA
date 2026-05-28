@@ -45,14 +45,7 @@ public class ILocaleManagerProxy extends BinderInvocationStub {
 
     @Override
     protected Object getWho() {
-        try {
-            Class<?> stubClass = Class.forName("android.app.ILocaleManager$Stub");
-            Method asInterfaceMethod = stubClass.getMethod("asInterface", IBinder.class);
-            return asInterfaceMethod.invoke(null, locale);
-        } catch (Exception e) {
-            Slog.e(TAG, "Failed to get ILocaleManager interface", e);
-            return null;
-        }
+        return BRILocaleManagerStub.get().asInterface(BRServiceManager.get().getService(SERVICE));
     }
 
     @Override
