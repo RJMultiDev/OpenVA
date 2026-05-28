@@ -134,8 +134,8 @@ public class IPackageManagerProxy extends BinderInvocationStub {
             int flags = MethodParameterUtils.toInt(args[1]);
             
             
-            if ("com.android.vending".equals(packageName)) {
-                return createFakeGooglePlayServicesPackageInfo();
+            if ("com.android.vending".equals(packageName) || "com.google.android.gms".equals(packageName) || "com.google.android.gsf".equals(packageName)) {
+                return createFakeGooglePlayServicesPackageInfo(packageName, flags);
             }
             
             PackageInfo packageInfo = BlackBoxCore.getBPackageManager().getPackageInfo(packageName, flags, BlackBoxCore.getUserId());
@@ -160,20 +160,36 @@ public class IPackageManagerProxy extends BinderInvocationStub {
             return null;
         }
         
-        private PackageInfo createFakeGooglePlayServicesPackageInfo() {
+        private PackageInfo createFakeGooglePlayServicesPackageInfo(String packageName, int flags) {
             PackageInfo packageInfo = new PackageInfo();
-            packageInfo.packageName = "com.android.vending";
+            packageInfo.packageName = packageName;
             packageInfo.versionName = "33.8.16-21";
             packageInfo.versionCode = 83381621;
             
-            ApplicationInfo appInfo = new ApplicationInfo();
-            appInfo.packageName = "com.android.vending";
-            appInfo.name = "Google Play Store";
-            appInfo.flags = ApplicationInfo.FLAG_SYSTEM;
-            appInfo.uid = 10001; 
+            ApplicationInfo appInfo = BlackBoxCore.getBPackageManager().getApplicationInfo(packageName, flags, BlackBoxCore.getUserId());
+            if (appInfo == null) {
+                appInfo = new ApplicationInfo();
+                appInfo.packageName = packageName;
+                appInfo.name = "com.android.vending".equals(packageName) ? "Google Play Store" : "Google Play Services";
+                appInfo.flags = ApplicationInfo.FLAG_SYSTEM;
+                appInfo.uid = 10001;
+            }
             packageInfo.applicationInfo = appInfo;
             
-            Slog.d(TAG, "GetPackageInfo: Providing fake Google Play Services info");
+            if ((flags & android.content.pm.PackageManager.GET_SIGNATURES) != 0) {
+                packageInfo.signatures = new android.content.pm.Signature[]{new android.content.pm.Signature("30820268308201d1a00302010202044fe5f013300d06092a864886f70d01010505003043")};
+            }
+            if (top.niunaijun.blackbox.utils.compat.BuildCompat.isPie() && (flags & android.content.pm.PackageManager.GET_SIGNING_CERTIFICATES) != 0) {
+                try {
+                    android.content.pm.PackageParser.SigningDetails signingDetails = android.content.pm.PackageParser.SigningDetails.UNKNOWN;
+                    black.android.content.pm.BRPackageParserSigningDetails.get(signingDetails)._set_signatures(new android.content.pm.Signature[]{new android.content.pm.Signature("30820268308201d1a00302010202044fe5f013300d06092a864886f70d01010505003043")});
+                    packageInfo.signingInfo = black.android.content.pm.BRSigningInfo.get()._new(signingDetails);
+                } catch (Exception e) {
+                    Slog.e(TAG, "Failed to create dummy signing details", e);
+                }
+            }
+
+            Slog.d(TAG, "GetPackageInfo: Providing fake Google Play Services info for " + packageName);
             return packageInfo;
         }
     }

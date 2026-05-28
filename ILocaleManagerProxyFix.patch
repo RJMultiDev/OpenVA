@@ -1,0 +1,22 @@
+<<<<<<< SEARCH
+import black.android.app.BRILocaleManagerStub;
+
+public class ILocaleManagerProxy extends BinderInvocationStub {
+=======
+import black.android.app.BRILocaleManagerStub;
+
+public class ILocaleManagerProxy extends BinderInvocationStub {
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+    @Override
+    protected Object getWho() {
+        android.os.IBinder locale = BRServiceManager.get().getService("locale");
+        return BRILocaleManagerStub.get().asInterface(locale);
+    }
+=======
+    @Override
+    protected Object getWho() {
+        android.os.IBinder locale = BRServiceManager.get().getService("locale");
+        return BRILocaleManagerStub.get().asInterface(locale);
+    }
+>>>>>>> REPLACE

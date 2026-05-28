@@ -96,14 +96,6 @@ public class ActivityManagerCommonProxy {
                         BActivityThread.getUserId());
                 if (resolveInfo == null) {
                     intent.setPackage(origPackage);
-                    String targetPkg = intent.getPackage();
-                    if (targetPkg == null && intent.getComponent() != null) {
-                        targetPkg = intent.getComponent().getPackageName();
-                    }
-                    if (targetPkg != null && (targetPkg.equals("com.google.android.gms") || targetPkg.equals("com.android.vending") || targetPkg.equals("com.google.android.gsf"))) {
-                        Slog.w(TAG, "Suppressed unresolvable GMS activity start: " + intent);
-                        return 0;
-                    }
                     return method.invoke(who, args);
                 }
             }
