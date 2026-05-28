@@ -80,6 +80,14 @@ public class BAccountManager extends BlackManager<IBAccountManagerService> {
         return null;
     }
 
+    public void hasFeatures(IAccountManagerResponse response, Account account, String[] features) {
+        try {
+            getService().hasFeatures(response, account, features, BActivityThread.getUserId());
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void getAccountByTypeAndFeatures(IAccountManagerResponse response, String accountType,
                                             String[] features) {
         try {

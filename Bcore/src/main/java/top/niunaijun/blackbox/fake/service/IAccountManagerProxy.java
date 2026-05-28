@@ -105,6 +105,16 @@ public class IAccountManagerProxy extends BinderInvocationStub {
         }
     }
 
+    @ProxyMethod("hasFeatures")
+    public static class hasFeatures extends MethodHook {
+
+        @Override
+        protected Object hook(Object who, Method method, Object[] args) throws Throwable {
+            BAccountManager.get().hasFeatures((IAccountManagerResponse) args[0], (Account) args[1], (String[]) args[2]);
+            return 0;
+        }
+    }
+
     @ProxyMethod("getAccountsByFeatures")
     public static class getAccountsByFeatures extends MethodHook {
 

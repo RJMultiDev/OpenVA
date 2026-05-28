@@ -8,10 +8,11 @@ import java.util.Map;
 
 import top.niunaijun.blackbox.BlackBoxCore;
 import top.niunaijun.blackbox.fake.delegate.AppInstrumentation;
-
+import top.niunaijun.blackbox.fake.service.ILocaleManagerProxy;
 import top.niunaijun.blackbox.fake.service.HCallbackProxy;
 import top.niunaijun.blackbox.fake.service.IAccessibilityManagerProxy;
 import top.niunaijun.blackbox.fake.service.IAccountManagerProxy;
+import top.niunaijun.blackbox.fake.service.ICredentialManagerProxy;
 import top.niunaijun.blackbox.fake.service.IActivityClientProxy;
 import top.niunaijun.blackbox.fake.service.IActivityManagerProxy;
 import top.niunaijun.blackbox.fake.service.IActivityTaskManagerProxy;
@@ -116,6 +117,9 @@ public class HookManager {
             addInjector(new IAppOpsManagerProxy());
             addInjector(new INotificationManagerProxy());
             addInjector(new IAlarmManagerProxy());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            addInjector(new ILocaleManagerProxy());
+        }
             addInjector(new IAppWidgetManagerProxy());
             addInjector(new ContentServiceStub());
             addInjector(new IWindowManagerProxy());
@@ -154,6 +158,12 @@ public class HookManager {
             addInjector(new ITelephonyRegistryProxy());
             addInjector(new IDevicePolicyManagerProxy());
             addInjector(new IAccountManagerProxy());
+            if (android.os.Build.VERSION.SDK_INT >= 34) {
+                addInjector(new ICredentialManagerProxy());
+            }
+            if (android.os.Build.VERSION.SDK_INT >= 34) {
+                addInjector(new ICredentialManagerProxy());
+            }
             addInjector(new IConnectivityManagerProxy());
             addInjector(new IDnsResolverProxy());
                     addInjector(new IAttributionSourceProxy());

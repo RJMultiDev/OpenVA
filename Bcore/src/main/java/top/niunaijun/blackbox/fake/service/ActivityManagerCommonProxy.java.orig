@@ -77,22 +77,6 @@ public class ActivityManagerCommonProxy {
                 intent.setData(Uri.parse("package:" + BlackBoxCore.getHostPkg()));
             }
 
-            if ("com.google.android.gms.auth".equals(intent.getAction()) ||
-                "android.accounts.AccountAuthenticator".equals(intent.getAction())) {
-                intent.setPackage("com.google.android.gms");
-            } else if (android.provider.Settings.ACTION_ADD_ACCOUNT.equals(intent.getAction()) ||
-                "android.settings.ADD_ACCOUNT_SETTINGS".equals(intent.getAction())) {
-                String[] accountTypes = intent.getStringArrayExtra("account_types");
-                if (accountTypes != null && accountTypes.length > 0) {
-                    for (String type : accountTypes) {
-                        if ("com.google".equals(type)) {
-                            intent.setPackage("com.google.android.gms");
-                            break;
-                        }
-                    }
-                }
-            }
-
             ResolveInfo resolveInfo = BlackBoxCore.getBPackageManager().resolveActivity(
                     intent,
                     GET_META_DATA,
@@ -127,42 +111,6 @@ public class ActivityManagerCommonProxy {
 
             intent.setExtrasClassLoader(who.getClass().getClassLoader());
             intent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
-
-            // Bypass BAL restrictions by setting ActivityOptions
-            if (android.os.Build.VERSION.SDK_INT >= 34) {
-                Bundle options = StartActivityCompat.getOptions(args);
-                android.app.ActivityOptions activityOptions;
-                if (options == null) {
-                    activityOptions = android.app.ActivityOptions.makeBasic();
-                } else {
-                    try {
-                        Method fromBundle = android.app.ActivityOptions.class.getMethod("fromBundle", Bundle.class);
-                        activityOptions = (android.app.ActivityOptions) fromBundle.invoke(null, options);
-                    } catch (Throwable e) {
-                        // Fallback if fromBundle is missing, which is unlikely but we don't want to crash.
-                        // However, on API 34+ fromBundle is present (hidden or not, we might be able to call it via reflection).
-                        // Another safe way is to just put the key into the bundle directly.
-                        activityOptions = null;
-                        options.putBoolean("android.pendingIntent.backgroundActivityAllowed", true);
-                        options.putBoolean("android.pendingIntent.backgroundActivityAllowedByPermission", true);
-                    }
-                }
-
-                if (activityOptions != null) {
-                    try {
-                        Method setPendingIntentBackgroundActivityStartMode = android.app.ActivityOptions.class.getMethod("setPendingIntentBackgroundActivityStartMode", int.class);
-                        setPendingIntentBackgroundActivityStartMode.invoke(activityOptions, 1); // MODE_BACKGROUND_ACTIVITY_START_ALLOWED = 1
-                    } catch (Throwable e) {
-                    }
-                    options = activityOptions.toBundle();
-                }
-
-                int optionsIndex = StartActivityCompat.getOptionsIndex();
-                if (optionsIndex >= 0 && optionsIndex < args.length) {
-                    args[optionsIndex] = options;
-                }
-            }
-
             BlackBoxCore.getBActivityManager().startActivityAms(BActivityThread.getUserId(),
                     StartActivityCompat.getIntent(args),
                     StartActivityCompat.getResolvedType(args),

@@ -389,7 +389,17 @@ public class BActivityThread extends IBActivityThread.Stub {
             }
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            WebView.setDataDirectorySuffix(getUserId() + ":" + packageName + ":" + processName);
+            if (android.os.Build.VERSION.SDK_INT >= 34) {
+                // For Android 16 (API 34/35+), we need to ensure the WebView data directory is properly isolated
+                try {
+                    // Try to clear default data directory suffix first
+                    WebView.setDataDirectorySuffix("virtual_" + getUserId() + "_" + processName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                WebView.setDataDirectorySuffix(getUserId() + ":" + packageName + ":" + processName);
+            }
         }
 
         VirtualRuntime.setupRuntime(processName, applicationInfo);

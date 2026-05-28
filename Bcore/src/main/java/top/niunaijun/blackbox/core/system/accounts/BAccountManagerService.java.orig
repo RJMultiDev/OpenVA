@@ -335,27 +335,6 @@ public class BAccountManagerService extends IBAccountManagerService.Stub impleme
     }
 
     @Override
-    public void hasFeatures(IAccountManagerResponse response, Account account, String[] features, int userId) throws RemoteException {
-        if (response == null) throw new IllegalArgumentException("response is null");
-        if (account == null) throw new IllegalArgumentException("account is null");
-        if (features == null) throw new IllegalArgumentException("features is null");
-
-        String opPackageName = getCallingPackageName();
-        BUserAccounts userAccounts = getUserAccounts(userId);
-        if (features.length == 0) {
-            Bundle result = new Bundle();
-            result.putBoolean(AccountManager.KEY_BOOLEAN_RESULT, true);
-            onResult(response, result);
-            return;
-        }
-        new HasFeaturesSession(
-                userAccounts,
-                response,
-                account,
-                features).bind();
-    }
-
-    @Override
     public boolean addAccountExplicitly(Account account, String password, Bundle extras, int userId) throws RemoteException {
         return addAccountExplicitlyWithVisibility(account, password, extras, null, userId);
     }
@@ -1259,55 +1238,6 @@ public class BAccountManagerService extends IBAccountManagerService.Stub impleme
                 }
             }
             super.onResult(result);
-        }
-    }
-
-
-    private class HasFeaturesSession extends Session {
-        private final String[] mFeatures;
-        private final Account mAccount;
-
-        public HasFeaturesSession(
-                BUserAccounts accounts,
-                IAccountManagerResponse response,
-                Account account,
-                String[] features) {
-            super(accounts, response, account.type, false /* expectActivityLaunch */,
-                    true /* stripAuthToken */, account.name,
-                    false /* authDetailsRequired */);
-            mFeatures = features;
-            mAccount = account;
-        }
-
-        @Override
-        public void run() throws RemoteException {
-            try {
-                mAuthenticator.hasFeatures(this, mAccount, mFeatures);
-            } catch (RemoteException e) {
-                onError(AccountManager.ERROR_CODE_REMOTE_EXCEPTION, "remote exception");
-            }
-        }
-
-        @Override
-        public void onResult(Bundle result) {
-            IAccountManagerResponse response = getResponseAndClose();
-            if (response != null) {
-                try {
-                    if (result == null) {
-                        response.onError(AccountManager.ERROR_CODE_INVALID_RESPONSE, "null bundle");
-                        return;
-                    }
-                    if (Log.isLoggable(TAG, Log.VERBOSE)) {
-                        Log.v(TAG, getClass().getSimpleName() + " calling onResult() on response "
-                                + response);
-                    }
-                    response.onResult(result);
-                } catch (RemoteException e) {
-                    if (Log.isLoggable(TAG, Log.VERBOSE)) {
-                        Log.v(TAG, "failure while notifying response", e);
-                    }
-                }
-            }
         }
     }
 

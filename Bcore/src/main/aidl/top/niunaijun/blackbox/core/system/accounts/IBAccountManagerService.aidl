@@ -22,6 +22,8 @@ interface IBAccountManagerService {
             in String[] features, int userId);
     void getAccountsByFeatures(in IAccountManagerResponse response, String accountType,
         in String[] features, int userId);
+    void hasFeatures(in IAccountManagerResponse response, in Account account,
+        in String[] features, int userId);
     boolean addAccountExplicitly(in Account account, String password, in Bundle extras, int userId);
     void removeAccountAsUser(in IAccountManagerResponse response, in Account account,
         boolean expectActivityLaunch, int userId);
