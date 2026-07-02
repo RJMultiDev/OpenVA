@@ -625,7 +625,7 @@ public class BPackageManager extends BlackManager<IBPackageManagerService> {
             Log.d(TAG, "Fallback isInstalled check failed for " + packageName + ", assuming not installed");
             
             if (packageName != null && (packageName.equals("com.media.bestrecorder.audiorecorder") || 
-                                       packageName.startsWith("top.niunaijun.blackbox"))) {
+                                       packageName.startsWith("rj.openva"))) {
                 Log.w(TAG, "Returning true for known app " + packageName + " despite fallback failure");
                 return true;
             }

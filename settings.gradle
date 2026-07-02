@@ -1,5 +1,8 @@
 pluginManagement {
     repositories {
+        maven { url "https://maven.aliyun.com/repository/google" }
+        maven { url "https://maven.aliyun.com/repository/gradle-plugin" }
+        maven { url "https://maven.aliyun.com/repository/public" }
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
@@ -16,15 +19,28 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google()
-        mavenCentral()
-        maven { url "https://www.jitpack.io" }
+        mavenLocal()
+        maven { url "https://maven.aliyun.com/repository/google" }
+        maven { url "https://maven.aliyun.com/repository/central" }
+        maven { url "https://maven.aliyun.com/repository/public" }
+        maven { url "https://maven.aliyun.com/repository/gradle-plugin" }
+        maven {
+            url "https://www.jitpack.io"
+            content {
+                includeGroup "com.gitee.cbfg5210"
+                includeGroup "com.github.Othershe"
+                includeGroup "com.github.nukc"
+                includeGroup "com.github.Ferfalk"
+                includeGroup "com.github.tiann"
+            }
+        }
     }
 }
 
-rootProject.name = "NewBlackbox"
+rootProject.name = "OpenVA"
 
 include ':app'
 include(":black-reflection")
 include(":compiler")
+include(":compiler-ksp")
 include ':Bcore'

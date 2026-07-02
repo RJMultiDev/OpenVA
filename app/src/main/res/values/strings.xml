@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">BlackBox</string>
+    <string name="app_name">OpenVA</string>
     <string name="choose">Choose</string>
     <string name="choose_app">Choose App</string>
     <string name="installed_app">Installed App</string>
@@ -9,7 +9,6 @@
     <string name="filter">Filter</string>
     <string name="open_source_path">Open Source</string>
     <string name="xp_setting">Xposed Setting</string>
-    <string name="tg_group">Telegram Group</string>
     <string name="fake_location">Fake Location(Preview)</string>
     <string name="real_location">Real Location</string>
     <string name="set_location">Set Fake Location Successfully:%s-%s</string>
@@ -37,7 +36,7 @@
     <string name="app_shortcut">Create Shortcut</string>
     <string name="shortcut_name">Shortcut Name</string>
     <string name="try_add_shortcut">Try Added To Desktop</string>
-    <string name="add_shortcut_fail_msg">If the addition fails, please go to system settings and open the permission of "create desktop shortcut" for BlackBox</string>
+    <string name="add_shortcut_fail_msg">If the addition fails, please go to system settings and open the permission of "create desktop shortcut" for OpenVA</string>
     <string name="install_success">Installed Successfully</string>
     <string name="install_fail">Installed Failed: %s</string>
     <string name="install_fail_no_msg">Installed Failed</string>

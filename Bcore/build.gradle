@@ -1,4 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+group = 'rj.openva'
+version = '5.0.0'
 
 android {
     namespace 'top.niunaijun.blackbox'
@@ -35,7 +39,7 @@ android {
         ndkBuild {
             path 'src/main/cpp/Android.mk'
         }
-        ndkVersion = "29.0.13846066"
+        ndkVersion = "28.2.13676358"
     }
 
     compileOptions {
@@ -80,8 +84,8 @@ tasks.withType(Javadoc) {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
   implementation 'com.google.android.material:material:1.3.0'
-    implementation(project(":black-reflection"))
-    annotationProcessor(project(":compiler"))
+    api 'rj.openva:black-reflection:5.0.0'
+    annotationProcessor 'rj.openva:compiler:5.0.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
 
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'
@@ -90,6 +94,39 @@ dependencies {
 
 
 
-    
+
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'rj.openva'
+            artifactId = 'Bcore'
+            version = '5.0.0'
+            afterEvaluate {
+                artifact bundleReleaseAar
+                pom {
+                    withXml {
+                        def dependenciesNode = asNode().appendNode('dependencies')
+                        // api: black-reflection
+                        def api = dependenciesNode.appendNode('dependency')
+                        api.appendNode('groupId', 'rj.openva')
+                        api.appendNode('artifactId', 'black-reflection')
+                        api.appendNode('version', '5.0.0')
+                        api.appendNode('scope', 'compile')
+                        // api: appcompat (because manifest/classes reference)
+                        def ap = dependenciesNode.appendNode('dependency')
+                        ap.appendNode('groupId', 'androidx.appcompat')
+                        ap.appendNode('artifactId', 'appcompat')
+                        ap.appendNode('version', '1.2.0')
+                        ap.appendNode('scope', 'compile')
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
 }
 apply from: 'download_gapps.gradle'

@@ -34,8 +34,8 @@ class SandboxAccountPickerActivity : AppCompatActivity() {
         private const val TAG = "SandboxAccountPicker"
 
         // Extras injected by ActivityManagerCommonProxy.
-        const val EXTRA_SANDBOX_USER_ID = "blackbox.sandbox.userId"
-        const val EXTRA_SANDBOX_CALLING_PKG = "blackbox.sandbox.callingPkg"
+        const val EXTRA_SANDBOX_USER_ID = "openva.sandbox.userId"
+        const val EXTRA_SANDBOX_CALLING_PKG = "openva.sandbox.callingPkg"
 
         // ChooseTypeAndAccountActivity public extras (kept as raw strings so
         // we don't pull in @hide APIs).

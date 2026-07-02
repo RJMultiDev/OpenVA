@@ -6,10 +6,10 @@ plugins {
 android {
     namespace 'top.niunaijun.blackboxa'
     compileSdk rootProject.ext.compileSdkVersion
-    ndkVersion = "29.0.13846066"
+    ndkVersion = "28.2.13676358"
     
     defaultConfig {
-        applicationId "top.niunaijun.blackbox"
+        applicationId "rj.openva"
         minSdk rootProject.ext.minSdk
         targetSdk rootProject.ext.targetSdkVersion
         versionCode rootProject.ext.versionCode
@@ -21,7 +21,6 @@ android {
             abi {
                 enable true
                 reset()
-                
                 include 'armeabi-v7a', "arm64-v8a"
                 universalApk true
             }
@@ -48,7 +47,7 @@ android {
 
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach { output ->
-            output.outputFileName = "BlackBox_${variant.versionName}_${output.baseName}.apk"
+            output.outputFileName = "OpenVA_${variant.versionName}_${output.baseName}.apk"
         }
     }
 }

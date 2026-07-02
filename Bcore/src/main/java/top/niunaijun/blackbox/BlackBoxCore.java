@@ -862,7 +862,7 @@ public class BlackBoxCore extends ClientConfiguration {
         if (processName.equals(BlackBoxCore.getHostPkg())) {
             mProcessType = ProcessType.Main;
             startLogcat();
-        } else if (processName.endsWith(getContext().getString(R.string.black_box_service_name))) {
+        } else if (processName.endsWith(getContext().getString(R.string.openva_service_name))) {
             mProcessType = ProcessType.Server;
         } else {
             mProcessType = ProcessType.BAppClient;

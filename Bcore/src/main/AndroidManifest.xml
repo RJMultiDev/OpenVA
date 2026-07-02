@@ -492,14 +492,14 @@
         android:usesCleartextTraffic="true">
         <provider
             android:name="top.niunaijun.blackbox.core.system.SystemCallProvider"
-            android:authorities="${applicationId}.blackbox.SystemCallProvider"
+            android:authorities="${applicationId}.openva.SystemCallProvider"
             android:exported="false"
-            android:process="@string/black_box_service_name" />
+            android:process="@string/openva_service_name" />
 
         
         <provider
             android:name=".fake.provider.FileProvider"
-            android:authorities="${applicationId}.blackbox.FileProvider"
+            android:authorities="${applicationId}.openva.FileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -511,7 +511,7 @@
             android:name=".proxy.ProxyBroadcastReceiver"
             android:enabled="true"
             android:exported="true"
-            android:process="@string/black_box_service_name">
+            android:process="@string/openva_service_name">
             <intent-filter>
                 <action android:name="${applicationId}.stub_receiver" />
             </intent-filter>
@@ -520,13 +520,13 @@
         <service
             android:name="top.niunaijun.blackbox.core.system.DaemonService"
             android:exported="false"
-            android:process="@string/black_box_service_name"
+            android:process="@string/openva_service_name"
             android:foregroundServiceType="specialUse" />
 
         <service
             android:name="top.niunaijun.blackbox.core.system.DaemonService$DaemonInnerService"
             android:exported="false"
-            android:process="@string/black_box_service_name"
+            android:process="@string/openva_service_name"
             android:foregroundServiceType="specialUse" />
 
         <activity

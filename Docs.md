@@ -1,4 +1,4 @@
-# BlackBox Virtual Environment - Complete User Guide
+# OpenVA Virtual Environment - Complete User Guide
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -16,7 +16,7 @@
 
 ## Overview
 
-BlackBox is a comprehensive Android virtualization solution that creates isolated environments for running apps. The latest version includes significant improvements for:
+OpenVA is a comprehensive Android virtualization solution that creates isolated environments for running apps. The latest version includes significant improvements for:
 
 - **App Installation & Management**: Robust app installation with cloning prevention
 - **WebView Support**: Complete WebView compatibility for browsers and web apps
@@ -36,7 +36,7 @@ BlackBox is a comprehensive Android virtualization solution that creates isolate
 - Internet connection for initial setup
 
 ### Basic Installation
-1. **Download BlackBox APK** from the official source
+1. **Download OpenVA APK** from the official source
 2. **Install the APK** using your preferred method
 3. **Grant Permissions** when prompted:
    - Storage access
@@ -61,17 +61,16 @@ BlackBox is a comprehensive Android virtualization solution that creates isolate
 ```java
 // Using BlackBoxCore API
 BlackBoxCore.get().installPackageAsUser(apkFile, userId);
-
 // Example with error handling
 try {
     InstallResult result = BlackBoxCore.get().installPackageAsUser(apkFile, 0);
     if (result.isSuccess()) {
-        Log.d("BlackBox", "App installed successfully: " + result.getPackageName());
+        Log.d("OpenVA", "App installed successfully: " + result.getPackageName());
     } else {
-        Log.e("BlackBox", "Installation failed: " + result.getErrorMessage());
+        Log.e("OpenVA", "Installation failed: " + result.getErrorMessage());
     }
 } catch (Exception e) {
-    Log.e("BlackBox", "Installation error", e);
+    Log.e("OpenVA", "Installation error", e);
 }
 ```
 
@@ -331,13 +330,13 @@ BlackBoxCore.get().clearUnusedResources(userId);
 #### App Installation Failures
 ```bash
 # Check logs for installation errors
-adb logcat | grep "BlackBox"
+adb logcat | grep "OpenVA"
 
 # Common solutions:
 # 1. Ensure sufficient storage space
 # 2. Check APK file integrity
 # 3. Verify package compatibility
-# 4. Clear BlackBox cache
+# 4. Clear OpenVA cache
 ```
 
 #### WebView Issues
@@ -375,11 +374,11 @@ BlackBoxCore.enableDebugFeature("gms", true);
 
 #### Log Analysis
 ```bash
-# Filter BlackBox logs
-adb logcat | grep "BlackBox\|WebView\|GmsProxy\|WorkManager"
+# Filter OpenVA logs
+adb logcat | grep "OpenVA\|WebView\|GmsProxy\|WorkManager"
 
 # Save logs to file
-adb logcat > blackbox_logs.txt
+adb logcat > openva_logs.txt
 
 # Analyze specific components
 adb logcat | grep "JobServiceStub\|IAccountManagerProxy\|GmsProxy"
@@ -442,7 +441,7 @@ Account[] sandboxAccounts = BAccountManager.get().getAccountsAsUser("com.google"
 ## Frequently Asked Questions
 
 ### Q: Why do some apps show black screens?
-**A**: This is usually caused by context or resource loading issues. The new BlackBox version includes comprehensive fixes for:
+**A**: This is usually caused by context or resource loading issues. The new OpenVA version includes comprehensive fixes for:
 - Context management
 - Resource loading
 - Activity lifecycle
@@ -463,7 +462,7 @@ Account[] sandboxAccounts = BAccountManager.get().getAccountsAsUser("com.google"
 - Graceful fallback mechanisms
 
 ### Q: How do I prevent app cloning issues?
-**A**: BlackBox now includes:
+**A**: OpenVA now includes:
 - Automatic cloning prevention
 - Package validation
 - Security checks
@@ -483,7 +482,7 @@ Account[] sandboxAccounts = BAccountManager.get().getAccountsAsUser("com.google"
 ### Getting Help
 - **Documentation**: Check this Docs.md file
 - **Logs**: Enable debug mode and analyze logs
-- **Community**: Join BlackBox user forums
+- **Community**: Join OpenVA user forums
 - **Issues**: Report bugs with detailed logs
 
 ### Version History
@@ -503,10 +502,10 @@ Account[] sandboxAccounts = BAccountManager.get().getAccountsAsUser("com.google"
 
 ## Conclusion
 
-The new BlackBox virtual environment provides a robust, feature-rich solution for Android app virtualization. With comprehensive WebView support, Google services integration, and background job management, it offers enterprise-grade functionality for both developers and end users.
+The new OpenVA virtual environment provides a robust, feature-rich solution for Android app virtualization. With comprehensive WebView support, Google services integration, and background job management, it offers enterprise-grade functionality for both developers and end users.
 
 For the best experience:
-1. **Keep BlackBox updated** to the latest version
+1. **Keep OpenVA updated** to the latest version
 2. **Enable debug logging** when troubleshooting
 3. **Monitor system resources** for optimal performance
 4. **Report issues** with detailed logs for faster resolution

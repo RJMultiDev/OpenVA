@@ -1,10 +1,10 @@
-# BlackBox - Virtual Engine
+# OpenVA - Virtual Engine
 
 <p align="center">
-  <img src="assets/usage.gif" alt="BlackBox Banner" width="100%"/>
+  <img src="assets/usage.gif" alt="OpenVA Banner" width="100%"/>
 </p>
 
-BlackBox is a virtual engine that allows you to clone and run virtual applications on Android devices without installing APKs. This project works on Android 5.0 to 14.0+ and supports multiple architectures (ARM64, ARMv7, x86).
+OpenVA is a virtual engine that allows you to clone and run virtual applications on Android devices without installing APKs. This project works on Android 5.0 to 14.0+ and supports multiple architectures (ARM64, ARMv7, x86).
 
 ## Overview
 
@@ -37,8 +37,8 @@ This enhanced edition includes bug fixes, stability improvements, and Android 14
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-repo/NewBlackbox.git
-cd NewBlackbox
+git clone https://github.com/RJMultiDev/OpenVA.git
+cd OpenVA
 
 # Build Debug APK
 ./gradlew assembleDebug
@@ -49,7 +49,7 @@ cd NewBlackbox
 
 ## Integration
 
-To use BlackBox Core in your own project, add the AAR dependency:
+To use OpenVA Core in your own project, add the AAR dependency:
 
 ```gradle
 dependencies {
@@ -74,7 +74,7 @@ Refer to `Docs.md` for detailed API documentation.
 
 ## License
 
-Copyright 2022 BlackBox
+Copyright 2026 OpenVA
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

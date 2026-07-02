@@ -1,20 +1,26 @@
 plugins {
-    id("java-library")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.ksp)
     `maven-publish`
-}
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
 }
 
 group = "rj.openva"
 version = "5.0.0"
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 dependencies {
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    annotationProcessor("com.google.auto.service:auto-service:1.1.1")
-    compileOnly("com.google.auto.service:auto-service:1.1.1")
-    implementation("com.squareup:javapoet:1.13.0")
+    implementation(libs.symbol.processing.api)
+    implementation(libs.javapoet)
     implementation("rj.openva:black-reflection:5.0.0")
 }
 

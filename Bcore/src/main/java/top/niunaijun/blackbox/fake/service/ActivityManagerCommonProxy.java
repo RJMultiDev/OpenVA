@@ -222,7 +222,7 @@ public class ActivityManagerCommonProxy {
             // Prevent looping: if we already replaced it or it's calling GMS account picker
             if ("com.google.android.gms.common.account.AccountPickerActivity".equals(className) ||
                 "com.google.android.gms".equals(intent.getPackage()) ||
-                "top.niunaijun.blackbox".equals(intent.getPackage())) {
+                "rj.openva".equals(intent.getPackage())) {
                 return false;
             }
             if (!isPicker) {
@@ -246,8 +246,8 @@ public class ActivityManagerCommonProxy {
                         BlackBoxCore.getHostPkg(),
                         "top.niunaijun.blackboxa.view.account.SandboxAccountPickerActivity"));
                 intent.setPackage(null);
-                intent.putExtra("blackbox.sandbox.userId", userId);
-                intent.putExtra("blackbox.sandbox.callingPkg", callingPkg);
+                intent.putExtra("openva.sandbox.userId", userId);
+                intent.putExtra("openva.sandbox.callingPkg", callingPkg);
                 Slog.d(TAG, "Substituting system AccountPicker with sandbox picker for user "
                         + userId + " caller=" + callingPkg);
                 return true;

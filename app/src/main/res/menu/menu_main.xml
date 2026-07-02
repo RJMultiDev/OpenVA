@@ -18,8 +18,4 @@
             android:title="@string/open_source_path"
             app:showAsAction="never" />
 
-    <item
-            android:id="@+id/main_tg"
-            android:title="@string/tg_group"
-            app:showAsAction="never" />
 </menu>

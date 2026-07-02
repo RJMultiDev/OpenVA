@@ -15,6 +15,11 @@
 .vscode
 /build
 /captures
+/compiler/build/
+/black-reflection/build/
+/Bcore/build/
+/app/build/
+/compiler-ksp/build/
 .externalNativeBuild
 .cxx
 local.properties

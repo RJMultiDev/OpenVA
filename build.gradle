@@ -3,6 +3,8 @@ plugins {
 alias(libs.plugins.android.application) apply false
     alias(libs.plugins.jetbrains.kotlin.android) apply false
     alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.ksp) apply false
 }
 
 ext {
@@ -10,8 +12,8 @@ ext {
     targetSdkVersion = 28 
 
     minSdk = 21
-    versionCode = 400
-    versionName = "4.0.0"
+    versionCode = 500
+    versionName = "5.0.0"
     xVersion = '1.1.0'
     hiddenApiBypass = '4.3'
 }
